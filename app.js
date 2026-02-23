@@ -34,6 +34,8 @@ const winningConditions = [];
 function handleCellPlayed(clickedCell, clickedCellIndex) {
   // Update the game state to reflect the move
   // Display the current player's symbol in the clicked cell
+  gameState[clickedCellIndex] = currentPlayer;
+  clickedCell.innerHTML = currentPlayer;
 }
 
 /**
@@ -45,6 +47,8 @@ function handleCellPlayed(clickedCell, clickedCellIndex) {
 function handlePlayerChange() {
   // Toggle the current player
   // Update the status text to reflect the new player's turn
+  currentPlayer = currentPlayer === "X" ? "O" : "X";
+  statusDisplay.innerHTML = currentPlayerTurn();
 }
 
 /**
