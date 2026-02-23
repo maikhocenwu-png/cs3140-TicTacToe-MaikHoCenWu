@@ -1,17 +1,25 @@
 /**********************************************
  * File: app.js
  * Description: A simple Tic-Tac-Toe game
- * Author: [Your Name]
+ * Author: [Maik Ho Cen Wu]
  **********************************************/
 
 // Select the status display element from the DOM.
 // We'll use this to display messages to the user.
 const statusDisplay = document.querySelector(".game--status");
 
+const cells = document.querySelectorAll(".cell");
+const restartButton = document.querySelector(".game--restart");
+
 // Set initial game state values
 let gameActive = true; // This keeps track of whether the game is active or has ended
 let currentPlayer = "X"; // This tracks whose turn it currently is
 let gameState = ["", "", "", "", "", "", "", "", ""]; // Represents the 9 cells in the game board
+
+let xWinCount = 0; //x win count
+let oWinCount = 0; //o win count
+const clickSound = new Audio('click.mp3'); // Sound effect for cell clicks
+const winSound = new Audio('fnaf_yay.mp3'); // Sound effect for winning
 
 // A function to return the current player's turn message
 const currentPlayerTurn = () => `It's ${currentPlayer}'s turn`;
@@ -22,7 +30,17 @@ statusDisplay.innerHTML = currentPlayerTurn();
 // Define the possible winning conditions for Tic-Tac-Toe
 // Each array within this array represents a set of indices in 'gameState'
 // that forms a winning line
-const winningConditions = [];
+const winningConditions = [
+  [0, 1, 2], 
+  [3, 4, 5], 
+  [6, 7, 8], 
+  [0, 3, 6], 
+  [1, 4, 7], 
+  [2, 5, 8], 
+  [0, 4, 8], 
+  [2, 4, 6]       
+];
+
 
 /**
  * handleCellPlayed
@@ -36,6 +54,7 @@ function handleCellPlayed(clickedCell, clickedCellIndex) {
   // Display the current player's symbol in the clicked cell
   gameState[clickedCellIndex] = currentPlayer;
   clickedCell.innerHTML = currentPlayer;
+  clickSound.play();
 }
 
 /**
@@ -63,17 +82,45 @@ function handleResultValidation() {
   let roundWon = false;
 
   // Iterate through each winning condition
-
+  for (let i = 0; i < winningConditions.length; i++) {
   // Destructure the three cell indices that form a potential win
-
+    const [a, b, c] = winningConditions[i];
   // If any cell is empty, skip this iteration
-
+    if (gameState[a] === "" || gameState[b] === "" || gameState[c] === "") {
+      continue;
+    }
   // Check if these three positions match, indicating a win
+    if (gameState[a] === gameState[b] && gameState[b] === gameState[c]) {
+      roundWon = true;
 
+      [a, b, c].forEach(index => {
+        cells[index].style.backgroundColor = "#3766e7"; // Highlight winning cells
+      });
+      break;
+    }
+  }
   // If the round is won, display the winner and end the game
+  if (roundWon) {
 
+      if (currentPlayer === "X") {
+        xWinCount++;
+      } else {
+        oWinCount++;
+      }
+
+    winSound.play();
+    statusDisplay.innerHTML = ` ${currentPlayer} wins!`;
+    statusDisplay.innerHTML += `<br>X wins: ${xWinCount} | O wins: ${oWinCount}`;
+
+    gameActive = false;
+    return;
+  }
   // If there are no empty cells in 'gameState', it's a draw
-
+  if (!gameState.includes("")) {
+    statusDisplay.innerHTML = `Draw!`;
+    gameActive = false;
+    return;
+  }
   // If the game is neither won nor drawn, switch to the next player
   handlePlayerChange();
 }
@@ -88,6 +135,7 @@ function handleResultValidation() {
  */
 function handleCellClick(clickedCellEvent) {
   // The clicked cell element
+  const clickedCell = clickedCellEvent.target;
 
   // The index of the cell based on its data attribute
   const clickedCellIndex = parseInt(
@@ -95,10 +143,12 @@ function handleCellClick(clickedCellEvent) {
   );
 
   // If the cell is already filled or the game is not active, don't do anything
-
+  if (gameState[clickedCellIndex] !== "" || !gameActive) {
+    return;
+  }
   // Otherwise, handle the cell being played and validate results
-
-  handleResultValidation();
+  handleCellPlayed(clickedCell, clickedCellIndex);
+  handleResultValidation(); 
 }
 
 /**
@@ -118,8 +168,14 @@ function handleRestartGame() {
   statusDisplay.innerHTML = currentPlayerTurn();
 
   // Clear each cell in the UI
+  cells.forEach(cell => {
+    cell.innerHTML = "";
+    cell.style.backgroundColor = "white"; // Reset background color
+  });
 }
 
 // Add event listeners to each cell for a click event
+cells.forEach(cell => cell.addEventListener("click", handleCellClick));
 
 // Add event listener to the restart button
+restartButton.addEventListener("click", handleRestartGame); 
